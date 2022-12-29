@@ -45,7 +45,7 @@ class NotionAPIWrapper(BaseModel):
             import os
             from notion_client import Client
 
-            values["notion_client"] = Client(auth=os.environ["NOTION_TOKEN"])
+            values["notion_client"] = Client
 
 
         except ImportError:
@@ -57,7 +57,11 @@ class NotionAPIWrapper(BaseModel):
 
     def run(self, query: str) -> str:
         """Run query through SerpAPI and parse result."""
-        notion_client = self.notion_client()
+        params = {
+            "auth":self.notion_token
+        }
+        notion_client = self.notion_client(params)
+       
 
         # save to response to notion page block inside a database id
         notion_client.pages.create(
