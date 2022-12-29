@@ -70,9 +70,9 @@ class NotionAPIWrapper(BaseModel):
         except Exception as e:
             return "Failed to write to Notion. Here is the exception message: " + str(e)
 
-    def run(self, document: str, document_title: str) -> str:
+    def run(self, document: str) -> str:
         """Run query through SerpAPI and parse result."""
         params = {"auth": self.notion_token}
         notion_client = self.notion_client(params)
-        return self._write_to_notion(notion_client, document,document_title)
+        return self._write_to_notion(notion_client, document,document[0:10] + "...")
 
