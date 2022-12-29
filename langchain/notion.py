@@ -57,39 +57,24 @@ class NotionAPIWrapper(BaseModel):
         params = {"auth": self.notion_token}
         notion_client = self.notion_client(params)
 
+
         # save to response to notion page block inside a database id
         notion_client.pages.create(
             {
                 "parent": {"database_id": self.notion_parent_id},
-                "icon": {"type": "emoji", "emoji": "🥬"},
-                "cover": {
-                    "type": "external",
-                    "external": {
-                        "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Tuscankale.jpg"
-                    },
-                },
                 "properties": {
                     "Name": {
                         "title": [
                             {
                                 "type": "text",
                                 "text": {
-                                    "content": "Kale Content - Created this page from Notion API"
-                                },
+                                    "content": query
+                                }
                             }
                         ]
                     }
                 },
                 "children": [
-                    {
-                        "object": "block",
-                        "type": "heading_2",
-                        "heading_2": {
-                            "rich_text": [
-                                {"type": "text", "text": {"content": "Lacinato kale"}}
-                            ]
-                        },
-                    },
                     {
                         "object": "block",
                         "type": "paragraph",
@@ -98,16 +83,14 @@ class NotionAPIWrapper(BaseModel):
                                 {
                                     "type": "text",
                                     "text": {
-                                        "content": "Lacinato kale is a variety of kale with a long tradition in Italian cuisine, especially that of Tuscany. It is also known as Tuscan kale, Italian kale, dinosaur kale, kale, flat back kale, palm tree kale, or black Tuscan palm.",
-                                        "link": {
-                                            "url": "https://en.wikipedia.org/wiki/Lacinato_kale"
-                                        },
-                                    },
+                                        "content": query
+                                        
+                                    }
                                 }
                             ]
-                        },
-                    },
-                ],
+                        }
+                    }
+                ]
             }
         )
         return "Wrote to Notion successfully!"
