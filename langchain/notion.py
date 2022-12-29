@@ -11,7 +11,6 @@ from pydantic import BaseModel, Extra, root_validator
 from langchain.utils import get_from_dict_or_env
 
 
-
 class NotionAPIWrapper(BaseModel):
     """Wrapper around Notion API.
 
@@ -32,21 +31,17 @@ class NotionAPIWrapper(BaseModel):
     @root_validator()
     def validate_environment(cls, values: Dict) -> Dict:
         """Validate that api key and python package exists in environment."""
-        notion_token = get_from_dict_or_env(
-            values, "notion_token", "NOTION_TOKEN"
-        )
+        notion_token = get_from_dict_or_env(values, "notion_token", "NOTION_TOKEN")
         values["NOTION_TOKEN"] = notion_token
-        notion_db_id = get_from_dict_or_env(
-            values, "notion_db_id", "NOTION_DB_ID"
-        )
+        notion_db_id = get_from_dict_or_env(values, "notion_db_id", "NOTION_DB_ID")
         values["NOTION_DB_ID"] = notion_db_id
 
         try:
             import os
+
             from notion_client import Client
 
             values["notion_client"] = Client
-
 
         except ImportError:
             raise ValueError(
@@ -57,11 +52,8 @@ class NotionAPIWrapper(BaseModel):
 
     def run(self, query: str) -> str:
         """Run query through SerpAPI and parse result."""
-        params = {
-            "auth":self.notion_token
-        }
+        params = {"auth": self.notion_token}
         notion_client = self.notion_client(params)
-       
 
         # save to response to notion page block inside a database id
         notion_client.pages.create(
@@ -74,15 +66,15 @@ class NotionAPIWrapper(BaseModel):
                             "content": "Hello, World!",
                         },
                     }
-
                 ],
-                "block": [
+                "children": [
                     {
-                        "type": "text",
-                        "text": {
-                            "content": query,
+                        "object": "block",
+                        "type": "paragraph",
+                        "paragraph": {
+                            "rich_text": [{"type": "text", "text": {"content": query}}]
                         },
-                    }
+                    },
                 ],
             },
         )
