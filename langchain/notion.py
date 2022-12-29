@@ -39,8 +39,6 @@ class NotionAPIWrapper(BaseModel):
         values["NOTION_PARENT_ID"] = notion_parent_id
 
         try:
-            import os
-
             from notion_client import Client
 
             values["notion_client"] = Client
@@ -52,43 +50,30 @@ class NotionAPIWrapper(BaseModel):
             )
         return values
 
+    def _write_to_notion(self, notion_client, query: str):
+        parent = {"database_id": self.notion_parent_id}
+        properties = {"Name": {"title": [{"type": "text", "text": {"content": query}}]}}
+        children = [
+            {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [{"type": "text", "text": {"content": query}}]
+                },
+            }
+        ]
+        try:
+            notion_client.pages.create(
+                parent=parent, properties=properties, children=children
+            )
+            return "Wrote to Notion successfully!"
+
+        except Exception as e:
+            return "Failed to write to Notion. Here is the exception message: " + str(e)
+
     def run(self, query: str) -> str:
         """Run query through SerpAPI and parse result."""
         params = {"auth": self.notion_token}
-        from notion_client import Client
-        notion_clientt = Client(auth=self.notion_token)
-
-        # notion_client = self.notion_client(params)
-
-
-        # save to response to notion page block inside a database id
+        notion_client = self.notion_client(params)
+        return self._write_to_notion(notion_client, query)
         
-        notion_clientt.pages.create(parent={"database_id": self.notion_parent_id}, properties={
-                    "Name": {
-                        "title": [
-                            {
-                                "type": "text",
-                                "text": {
-                                    "content": query
-                                }
-                            }
-                        ]
-                    }
-                }, children=[
-                    {
-                        "object": "block",
-                        "type": "paragraph",
-                        "paragraph": {
-                            "rich_text": [
-                                {
-                                    "type": "text",
-                                    "text": {
-                                        "content": query
-                                        
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ])
-        return "Wrote to Notion successfully!"
