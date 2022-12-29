@@ -55,11 +55,13 @@ class NotionAPIWrapper(BaseModel):
     def run(self, query: str) -> str:
         """Run query through SerpAPI and parse result."""
         params = {"auth": self.notion_token}
-        notion_client = self.notion_client(params)
+        from notion_client import Client
+        notion_clientt = Client(auth=self.notion_token)
+        # notion_client = self.notion_client(params)
 
 
         # save to response to notion page block inside a database id
-        notion_client.pages.create(
+        notion_clientt.pages.create(
             {
                 "parent": {"database_id": self.notion_parent_id},
                 "properties": {
