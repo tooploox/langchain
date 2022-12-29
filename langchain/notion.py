@@ -57,7 +57,7 @@ class NotionAPIWrapper(BaseModel):
 
         # save to response to notion page block inside a database id
         notion_client.pages.create(
-            parent={"page_id": self.notion_parent_id},
+            parent={"type": "page_id","page_id": self.notion_parent_id},
             properties={
                 "title": [
                     {
