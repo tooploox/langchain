@@ -57,13 +57,13 @@ class NotionAPIWrapper(BaseModel):
         params = {"auth": self.notion_token}
         from notion_client import Client
         notion_clientt = Client(auth=self.notion_token)
+
         # notion_client = self.notion_client(params)
 
 
         # save to response to notion page block inside a database id
-        c = {
-                "parent": {"database_id": self.notion_parent_id},
-                "properties": {
+        
+        notion_clientt.pages.create(parent={"database_id": self.notion_parent_id}, properties={
                     "Name": {
                         "title": [
                             {
@@ -74,8 +74,7 @@ class NotionAPIWrapper(BaseModel):
                             }
                         ]
                     }
-                },
-                "children": [
+                }, children={[
                     {
                         "object": "block",
                         "type": "paragraph",
@@ -91,7 +90,5 @@ class NotionAPIWrapper(BaseModel):
                             ]
                         }
                     }
-                ]
-            }
-        notion_clientt.pages.create(c)
+                ]})
         return "Wrote to Notion successfully!"
