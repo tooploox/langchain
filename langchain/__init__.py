@@ -27,6 +27,7 @@ from langchain.prompts import (
     PromptTemplate,
 )
 from langchain.serpapi import SerpAPIChain, SerpAPIWrapper
+from langchain.notion import NotionAPIWrapper
 from langchain.sql_database import SQLDatabase
 from langchain.vectorstores import FAISS, ElasticVectorSearch
 
@@ -42,6 +43,7 @@ __all__ = [
     "SelfAskWithSearchChain",
     "SerpAPIWrapper",
     "SerpAPIChain",
+    "NotionAPIWrapper",
     "Cohere",
     "OpenAI",
     "BasePromptTemplate",
