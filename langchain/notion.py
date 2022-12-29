@@ -74,7 +74,7 @@ class NotionAPIWrapper(BaseModel):
                             }
                         ]
                     }
-                }, children={[
+                }, children=[
                     {
                         "object": "block",
                         "type": "paragraph",
@@ -90,5 +90,5 @@ class NotionAPIWrapper(BaseModel):
                             ]
                         }
                     }
-                ]})
+                ])
         return "Wrote to Notion successfully!"
