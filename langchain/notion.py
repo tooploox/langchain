@@ -1,6 +1,5 @@
-"""Chain that calls SerpAPI.
+"""NotionAPI to save document.
 
-Heavily borrowed from https://github.com/ofirpress/self-ask
 """
 import os
 import sys
@@ -50,9 +49,9 @@ class NotionAPIWrapper(BaseModel):
             )
         return values
 
-    def _write_to_notion(self, notion_client, query: str):
+    def _write_to_notion(self, notion_client, query: str, document_title: str):
         parent = {"database_id": self.notion_parent_id}
-        properties = {"Name": {"title": [{"type": "text", "text": {"content": query}}]}}
+        properties = {"Name": {"title": [{"type": "text", "text": {"content": document_title}}]}}
         children = [
             {
                 "object": "block",
@@ -71,9 +70,9 @@ class NotionAPIWrapper(BaseModel):
         except Exception as e:
             return "Failed to write to Notion. Here is the exception message: " + str(e)
 
-    def run(self, query: str) -> str:
+    def run(self, document: str, document_title: str) -> str:
         """Run query through SerpAPI and parse result."""
         params = {"auth": self.notion_token}
         notion_client = self.notion_client(params)
-        return self._write_to_notion(notion_client, query)
-        
+        return self._write_to_notion(notion_client, document,document_title)
+
