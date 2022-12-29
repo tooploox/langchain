@@ -61,8 +61,7 @@ class NotionAPIWrapper(BaseModel):
 
 
         # save to response to notion page block inside a database id
-        notion_clientt.pages.create(
-            {
+        c = {
                 "parent": {"database_id": self.notion_parent_id},
                 "properties": {
                     "Name": {
@@ -94,5 +93,5 @@ class NotionAPIWrapper(BaseModel):
                     }
                 ]
             }
-        )
+        notion_clientt.pages.create(c)
         return "Wrote to Notion successfully!"
