@@ -20,7 +20,7 @@ class NotionAPIWrapper(BaseModel):
     notion_client: Any  #: :meta private:
 
     notion_token: Optional[str] = None
-    notion_parent_id: Optional[str] = None
+    notion_database_id: Optional[str] = None
 
     class Config:
         """Configuration for this pydantic object."""
@@ -32,10 +32,10 @@ class NotionAPIWrapper(BaseModel):
         """Validate that api key and python package exists in environment."""
         notion_token = get_from_dict_or_env(values, "notion_token", "NOTION_TOKEN")
         values["NOTION_TOKEN"] = notion_token
-        notion_parent_id = get_from_dict_or_env(
-            values, "notion_parent_id", "NOTION_PARENT_ID"
+        notion_database_id = get_from_dict_or_env(
+            values, "notion_database_id", "NOTION_DATABASE_ID"
         )
-        values["NOTION_PARENT_ID"] = notion_parent_id
+        values["NOTION_DATABASE_ID"] = notion_database_id
 
         try:
             from notion_client import Client
@@ -50,7 +50,7 @@ class NotionAPIWrapper(BaseModel):
         return values
 
     def _write_to_notion(self, notion_client, query: str, document_title: str):
-        parent = {"database_id": self.notion_parent_id}
+        parent = {"database_id": self.notion_database_id}
         properties = {"Name": {"title": [{"type": "text", "text": {"content": document_title}}]}}
         children = [
             {
