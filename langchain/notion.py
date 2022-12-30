@@ -1,5 +1,6 @@
 """NotionAPI to save document.
 
+
 """
 import os
 import sys
@@ -13,7 +14,17 @@ from langchain.utils import get_from_dict_or_env
 class NotionAPIWrapper(BaseModel):
     """Wrapper around Notion API.
 
-    # TODO: docs
+    TODO: Improve docs
+
+    To use, you should have the ``notion-client` python package installed,
+    and the environment variable ``NOTION_TOKEN`` AND ``NOTION_DATABASE_ID`` set, or pass
+    `serpapi_api_key` as a named parameter to the constructor.
+
+    To get your token:
+
+    1- Go to Notion, create a new integration and save the integration secret to NOTION_TOKEN
+    2- Create a new database in notion and copy its ID to NOTION_DATABASE_ID. 
+    The id It is normally the last part of the URL when you have a database open.
 
     """
 
@@ -71,10 +82,8 @@ class NotionAPIWrapper(BaseModel):
             return "Failed to write to Notion. Here is the exception message: " + str(e)
 
     def run(self, document: str) -> str:
-        """Run query through SerpAPI and parse result."""
+        """Saves document to Notion."""
         params = {"auth": self.notion_token}
         notion_client = self.notion_client(params)
-        print("Document")
-        print(document)
         return self._write_to_notion(notion_client, document,document[0:10] + "...")
 
