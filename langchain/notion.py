@@ -49,7 +49,7 @@ class NotionAPIWrapper(BaseModel):
             )
         return values
 
-    def _write_to_notion(self, notion_client, query: str, document_title: str):
+    def _write_to_notion(self, notion_client, document: str, document_title: str):
         parent = {"database_id": self.notion_database_id}
         properties = {"Name": {"title": [{"type": "text", "text": {"content": document_title}}]}}
         children = [
@@ -57,7 +57,7 @@ class NotionAPIWrapper(BaseModel):
                 "object": "block",
                 "type": "paragraph",
                 "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": query}}]
+                    "rich_text": [{"type": "text", "text": {"content": document}}]
                 },
             }
         ]
@@ -74,5 +74,7 @@ class NotionAPIWrapper(BaseModel):
         """Run query through SerpAPI and parse result."""
         params = {"auth": self.notion_token}
         notion_client = self.notion_client(params)
+        print("Document")
+        print(document)
         return self._write_to_notion(notion_client, document,document[0:10] + "...")
 
