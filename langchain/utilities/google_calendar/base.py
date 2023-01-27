@@ -4,14 +4,14 @@ import datetime
 import json
 from pprint import pprint
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Generator
 
 from pydantic import BaseModel, Extra, root_validator
 
 from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
     CREATE_EVENT_PROMPT,
-    DELETE_EVENT_PROMPT, 
+    DELETE_EVENT_PROMPT,
     CREATE_DESCRIPTION_PROMPT,
     CHOICE_EVENT_PROMPT,
     RESCHEDULE_EVENT_DESCRIPTION_PROMPT,
@@ -50,17 +50,17 @@ class GoogleCalendarAPIWrapper(BaseModel):
         extra = Extra.forbid
 
     def create_event(
-        self,
-        event_summary: str,
-        event_start_time: str,
-        event_end_time: str,
-        user_timezone: str,
-        event_location: str = "",
-        event_description: str = "",
-        # TODO: Implement later
-        # event_recurrence:str=None,
-        # event_attendees: List[str]=[],
-        # event_reminders:str=None,
+            self,
+            event_summary: str,
+            event_start_time: str,
+            event_end_time: str,
+            user_timezone: str,
+            event_location: str = "",
+            event_description: str = "",
+            # TODO: Implement later
+            # event_recurrence:str=None,
+            # event_attendees: List[str]=[],
+            # event_reminders:str=None,
     ) -> Any:
         """Create an event in the user's calendar."""
         event = {
@@ -99,14 +99,14 @@ class GoogleCalendarAPIWrapper(BaseModel):
             now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
             events_result = (
                 self.service.events()
-                .list(
+                    .list(
                     calendarId="primary",
                     timeMin=now,
                     maxResults=10,
                     singleEvents=True,
                     orderBy="startTime",
                 )
-                .execute()
+                    .execute()
             )
             events = events_result.get("items", [])
             if not events:
@@ -125,8 +125,8 @@ class GoogleCalendarAPIWrapper(BaseModel):
         try:
             event = (
                 self.service.events()
-                .get(calendarId="primary", eventId=event_id)
-                .execute()
+                    .get(calendarId="primary", eventId=event_id)
+                    .execute()
             )
             print(f'Event summary: {event["summary"]}')
             print(f'Event location: {event["location"]}')
@@ -137,29 +137,29 @@ class GoogleCalendarAPIWrapper(BaseModel):
 
     # Not implemented yet
     def reschedule_event(
-        self, event_id: str, new_start_time: str, new_end_time: str, new_event_description: str
+            self, event_id: str, new_start_time: str, new_end_time: str, new_event_description: str
     ) -> Any:
         """Reschedule an event in the user's calendar."""
         try:
             event = (
                 self.service.events()
-                .get(calendarId="primary", eventId=event_id)
-                .execute()
+                    .get(calendarId="primary", eventId=event_id)
+                    .execute()
             )
             event["start"]["dateTime"] = new_start_time
             event["end"]["dateTime"] = new_end_time
             event["description"] = new_event_description
             updated_event = (
                 self.service.events()
-                .update(calendarId="primary", eventId=event_id, body=event)
-                .execute()
+                    .update(calendarId="primary", eventId=event_id, body=event)
+                    .execute()
             )
             print(f'Event rescheduled: {updated_event.get("htmlLink")}')
             return updated_event
         except self.google_http_error as error:
             print(f"An error occurred: {error}")
 
-    #Not implemented yet
+    # Not implemented yet
     def delete_event(self, event_id: str) -> Any:
         """Delete an event in the user's calendar."""
         try:
@@ -250,7 +250,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         output = create_event_chain.run(
             query=query, date=date, u_timezone=u_timezone
         ).strip()
-        
+
         # Temporary display event summary response from GPT
         print(output)
 
@@ -299,17 +299,17 @@ class GoogleCalendarAPIWrapper(BaseModel):
         m, n = len(t), len(s)
         dp = [[0 for i in range(m + 1)] for j in range(2)]
         res = 0
-        
-        for i in range(1,n + 1):
-            for j in range(1,m + 1):
-                if(s[i - 1] == t[j - 1]):
+
+        for i in range(1, n + 1):
+            for j in range(1, m + 1):
+                if (s[i - 1] == t[j - 1]):
                     dp[i % 2][j] = dp[(i - 1) % 2][j - 1] + 1
-                    if(dp[i % 2][j] > res):
+                    if (dp[i % 2][j] > res):
                         res = dp[i % 2][j]
                 else:
                     dp[i % 2][j] = 0
         return res
-    
+
     def find_event_id_by_name(self, event_name):
         try:
             events = self.view_events()
@@ -321,12 +321,12 @@ class GoogleCalendarAPIWrapper(BaseModel):
                     longest_lcs = l
                     most_possible_event = i
             if longest_lcs < 3:
-                raise Exception( "could not find matching event")
+                raise Exception("could not find matching event")
             pprint(most_possible_event)
             return most_possible_event
         except Exception as inst:
             print(inst.args)
-        
+
     def run_delete_event(self, query) -> Any:
         """Run delete event on query."""
         from langchain import LLMChain, OpenAI, PromptTemplate
@@ -353,8 +353,10 @@ class GoogleCalendarAPIWrapper(BaseModel):
             self.delete_event(prediction["id"])
         else:
             prediction = {"summary": "none", "id": "none"}
-        return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + prediction["summary"] + " " + prediction["id"]
-    
+        return "Welp fella, that's your event name: " + loaded[
+            "event_summary"] + "\n" "I also tried to find it's id in your calendar: " + prediction[
+                   "summary"] + " " + prediction["id"]
+
     def run_reschedule_event(self, query) -> Any:
         """Run reschedule event on query."""
         from langchain import LLMChain, OpenAI, PromptTemplate
@@ -372,7 +374,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         output = reschedule_event_chain.run(
             query=query
         ).strip()
-        
+
         # Temporary display event summary response from GPT
         loaded = json.loads(output)
         (
@@ -380,12 +382,13 @@ class GoogleCalendarAPIWrapper(BaseModel):
         ) = loaded.values()
         pprint("printing vals from prompt")
         pprint(loaded)
-        prediction = self.find_event_id_by_name(loaded["event_summary"])   
+        prediction = self.find_event_id_by_name(loaded["event_summary"])
 
         # now try to set proper parameteres to reschedule an event
 
         date_prompt = PromptTemplate(
-            input_variables=["query", "date", "u_timezone", "event_summary", "event_start_time", "event_end_time"],
+            input_variables=["query", "date", "u_timezone", "event_summary", "event_start_time",
+                             "event_end_time"],
             template=RESCHEDULE_EVENT_PROMPT,
         )
         reschedule_event_chain = LLMChain(
@@ -400,16 +403,17 @@ class GoogleCalendarAPIWrapper(BaseModel):
         )
 
         output = reschedule_event_chain.run(
-            query=query, date=date, u_timezone=u_timezone, event_summary=loaded["event_summary"], 
-            event_start_time=prediction["start"]["dateTime"], event_end_time=prediction["end"]["dateTime"]
+            query=query, date=date, u_timezone=u_timezone, event_summary=loaded["event_summary"],
+            event_start_time=prediction["start"]["dateTime"],
+            event_end_time=prediction["end"]["dateTime"]
         ).strip()
 
         loaded = json.loads(output)
 
-        upadated_event = self.reschedule_event(prediction["id"], 
-            loaded["event_start_time"], 
-            loaded["event_end_time"],
-            loaded["event_summary"])
+        upadated_event = self.reschedule_event(prediction["id"],
+                                               loaded["event_start_time"],
+                                               loaded["event_end_time"],
+                                               loaded["event_summary"])
 
         return upadated_event
 
@@ -417,7 +421,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         from langchain import LLMChain, OpenAI, PromptTemplate
 
         events = self.view_events()
-        query = " \n".join([f"{idx+1}. {event['summary']}" for idx, event in enumerate(events)])
+        query = " \n".join([f"{idx + 1}. {event['summary']}" for idx, event in enumerate(events)])
 
         choice_prompt = PromptTemplate(
             input_variables=["query"],
@@ -453,3 +457,24 @@ class GoogleCalendarAPIWrapper(BaseModel):
 
         # TODO: reschedule_event, view_event, delete_event
         return {"classification": classification, "response": resp}
+
+    def run_sequential(self, query: str, temperature) -> Generator:
+        classification = self.run_classification(query)
+
+        yield classification
+        resp = ""
+        if classification == "create_event":
+            resp = self.run_create_event(query, openai_temperature=temperature)
+        elif classification == "view_events":
+            resp = self.view_events()
+        elif classification == "delete_event":
+            resp = self.run_delete_event(query)
+        elif classification == "reschedule_event":
+            resp = self.run_reschedule_event(query)
+        elif classification == "choice_event":
+            resp = self.run_choice_events(openai_temperature=temperature)
+        else:
+            yield("I have no idea what you are talking about...")
+
+        # TODO: reschedule_event, view_event, delete_event
+        yield str(resp)

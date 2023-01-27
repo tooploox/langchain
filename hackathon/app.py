@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import StreamingResponse
 
 from langchain import GoogleCalendarAPIWrapper
 
@@ -22,3 +23,14 @@ app.add_middleware(
 async def prompt(query: str) -> dict:
     # return {"message": "Hello World"}
     return {"response": f"{calendar.run(query)}"}
+
+
+@app.post("/streamed_prompt")
+@app.options("/streamed_prompt")
+async def streamed_prompt(query: str, temperature: float = 0.7) -> StreamingResponse:
+    response = StreamingResponse(
+        content=calendar.run_sequential(query, temperature=temperature),
+        status_code=200,
+        media_type="text/html",
+    )
+    return response
