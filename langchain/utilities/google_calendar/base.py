@@ -12,6 +12,7 @@ from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
     CREATE_EVENT_PROMPT,
     DELETE_EVENT_PROMPT,
+    RESCHEDULE_EVENT_PROMPT,
 )
 
 
@@ -294,22 +295,24 @@ class GoogleCalendarAPIWrapper(BaseModel):
         return res
     
     def find_event_id_by_name(self, event_name):
-        events = [ {"summary": i["summary"], "id": i["id"]} for i in self.view_events()]
-        most_possible_id = ""
-        most_possible_name = ""
-        longest_lcs = 0
-        for i in events:
-            l = self.lcs(i["summary"], event_name)
-            if l > longest_lcs:
-                longest_lcs = l
-                most_possible_id = i["id"]
-                most_possible_name = i["summary"]
-        if longest_lcs < 3:
-            return ("", "nothing in your calendar fits the given event name")
-        return (most_possible_id, most_possible_name)
+        try:
+            events = self.view_events()
+            most_possible_event = None
+            longest_lcs = 0
+            for i in events:
+                l = self.lcs(i["summary"], event_name)
+                if l > longest_lcs:
+                    longest_lcs = l
+                    most_possible_event = i
+            if longest_lcs < 3:
+                raise Exception( "could not find matching event")
+            pprint(most_possible_event)
+            return most_possible_event
+        except Exception as inst:
+            print(inst.args)
         
     def run_delete_event(self, query) -> Any:
-        """Run create event on query."""
+        """Run delete event on query."""
         from langchain import LLMChain, OpenAI, PromptTemplate
 
         # Use a classification chain to classify the query
@@ -317,12 +320,12 @@ class GoogleCalendarAPIWrapper(BaseModel):
             input_variables=["query"],
             template=DELETE_EVENT_PROMPT,
         )
-        create_event_chain = LLMChain(
+        delete_event_chain = LLMChain(
             llm=OpenAI(temperature=0, model="text-davinci-003"),
             prompt=date_prompt,
             verbose=True,
         )
-        output = create_event_chain.run(
+        output = delete_event_chain.run(
             query=query
         ).strip()
         loaded = json.loads(output)
@@ -330,10 +333,49 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_summary,
         ) = loaded.values()
         prediction = self.find_event_id_by_name(loaded["event_summary"])
-        if prediction[0] != "":
-            self.delete_event(prediction[0])
-        return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + ' '.join(prediction)
+        if prediction != None:
+            self.delete_event(prediction["summary"])
+        else:
+            prediction = {"summary": "none", "id": "none"}
+        return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + prediction["summary"] + " " + prediction["id"]
+    
+    def run_reschedule_event(self, query) -> Any:
+        """Run create event on query."""
+        from langchain import LLMChain, OpenAI, PromptTemplate
+
+        # Use a classification chain to classify the query
+        date_prompt = PromptTemplate(
+            input_variables=["date", "query", "u_timezone"],
+            template=RESCHEDULE_EVENT_PROMPT,
+        )
+        reschedule_event_chain = LLMChain(
+            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            prompt=date_prompt,
+            verbose=True,
+        )
+        date = datetime.datetime.utcnow().isoformat() + "Z"
+        u_timezone = str(
+            datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+        )
+        # llm_chain.run(query=query).strip() ouputs a json string
+        output = reschedule_event_chain.run(
+            query=query, date=date, u_timezone=u_timezone
+        ).strip()
         
+        # Temporary display event summary response from GPT
+        
+        loaded = json.loads(output)
+        (
+            event_summary,
+            event_start_time,
+            event_end_time,
+        ) = loaded.values()
+        pprint("printing vals from prompt")
+        pprint(loaded)
+        prediction = self.find_event_id_by_name(loaded["event_summary"])   
+        self.reschedule_event(prediction["id"], event_start_time, event_end_time)
+        return (prediction["id"], prediction["start"]["dateTime"], prediction["end"]["dateTime"])
+
     def run(self, query: str) -> Dict[str, Any]:
         """Ask a question to the notion database."""
         # Use a classification chain to classify the query
@@ -345,6 +387,8 @@ class GoogleCalendarAPIWrapper(BaseModel):
             resp = self.view_events()
         elif classification == "delete_event":
             resp = self.run_delete_event(query)
+        elif classification == "reschedule_event":
+            resp = self.run_reschedule_event(query)
         else:
             return {"classification": "error", "response": f"{classification} is not implemented"}
 
