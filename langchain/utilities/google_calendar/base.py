@@ -226,7 +226,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         )
         return llm_chain.run(query=query).strip().lower()
 
-    def run_create_event(self, query: str) -> str:
+    def run_create_event(self, query: str, openai_temperature: float = 0.7) -> str:
         """Run create event on query."""
         from langchain import LLMChain, OpenAI, PromptTemplate
 
@@ -236,7 +236,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             template=CREATE_EVENT_PROMPT,
         )
         create_event_chain = LLMChain(
-            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            llm=OpenAI(temperature=openai_temperature, model="text-davinci-003"),
             prompt=date_prompt,
             verbose=True,
         )
@@ -390,7 +390,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         self.reschedule_event(prediction["id"], event_start_time, event_end_time)
         return (prediction["id"], prediction["start"]["dateTime"], prediction["end"]["dateTime"])
 
-    def run_choice_events(self) -> str:
+    def run_choice_events(self, openai_temperature: float = 0.7) -> str:
         from langchain import LLMChain, OpenAI, PromptTemplate
 
         events = self.view_events()
@@ -401,7 +401,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             template=CHOICE_EVENT_PROMPT,
         )
         choice_events_chain = LLMChain(
-            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            llm=OpenAI(temperature=openai_temperature, model="text-davinci-003"),
             prompt=choice_prompt,
             verbose=True,
         )
