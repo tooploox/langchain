@@ -16,13 +16,9 @@ choice_event \n
 Classification:
 """
 
-RESCHEDULE_EVENT_PROMPT = """
-
-Date format: YYYY-MM-DDThh:mm:ss+00:00
+RESCHEDULE_EVENT_DESCRIPTION_PROMPT = """"
 Based on this event description:\n'Move Joey birthday to tomorrow at 7 pm',
-output a json of the following parameters: \n
-Today's datetime on UTC time 2021-05-02T10:00:00+00:00 and timezone
-of the user is -5, take into account the timezone of the user and today's date.
+output a json of the following parameter: \n
 
 1. event_summary \n
 2. event_start_time \n
@@ -35,10 +31,47 @@ event_summary:\n
     "event_end_time": "2021-05-03T20:00:00-05:00"
 }}
 
+Based on this event description:\n{query}
+
+event_summary:\n
+"""
+
+
+RESCHEDULE_EVENT_PROMPT = """
 
 Date format: YYYY-MM-DDThh:mm:ss+00:00
-Based on this event description:\n{query}, output a json of the
-following parameters: \n
+Based on this event description:\n'Move Joey birthday to tomorrow at 7 pm',
+output a json of the following parameters: \n
+The duration of the meeting is 1 hour.
+Today's datetime on UTC time 2021-05-02T10:00:00+00:00 and timezone
+of the user is -5, take into account the timezone of the user and today's date.
+
+1. event_summary \n
+2. event_start_time \n
+3. event_end_time \n
+
+event_summary:\n
+{{
+    "event_summary": "Joey birthday",
+    "event_start_time": "2021-05-03T19:00:00-05:00",
+    "event_end_time": "2021-05-03T20:00:00-05:00"
+    "event_description": "This is a birthday meeting"
+}}
+
+
+Date format: YYYY-MM-DDThh:mm:ss+00:00
+Based on this 
+
+event_summary:\n
+{{
+    event description:\n{query}, 
+    event_summary:\n{event_summary}, 
+    event_start_time:\n{event_start_time}, 
+    event_end_time:\n{event_end_time},
+}} 
+output a json of the following parameters: \n
+The meeting duration is defined as the difference between event_end_time and event_start_time.
+Take the meeting duration under account when rescheduling.
 Today's datetime on UTC time {date} and timezone of the user {u_timezone},
 take into account the timezone of the user and today's date.
 
@@ -46,6 +79,7 @@ take into account the timezone of the user and today's date.
 1. event_summary \n
 2. event_start_time \n
 3. event_end_time \n
+4. event_description \n
 
 event_summary:  \n
 """

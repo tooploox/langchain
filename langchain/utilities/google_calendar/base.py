@@ -14,6 +14,7 @@ from langchain.utilities.google_calendar.prompts import (
     DELETE_EVENT_PROMPT, 
     CREATE_DESCRIPTION_PROMPT,
     CHOICE_EVENT_PROMPT,
+    RESCHEDULE_EVENT_DESCRIPTION_PROMPT,
     RESCHEDULE_EVENT_PROMPT,
 )
 
@@ -136,7 +137,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
 
     # Not implemented yet
     def reschedule_event(
-        self, event_id: str, new_start_time: str, new_end_time: str
+        self, event_id: str, new_start_time: str, new_end_time: str, new_event_description: str
     ) -> Any:
         """Reschedule an event in the user's calendar."""
         try:
@@ -147,6 +148,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             )
             event["start"]["dateTime"] = new_start_time
             event["end"]["dateTime"] = new_end_time
+            event["description"] = new_event_description
             updated_event = (
                 self.service.events()
                 .update(calendarId="primary", eventId=event_id, body=event)
@@ -354,12 +356,36 @@ class GoogleCalendarAPIWrapper(BaseModel):
         return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + prediction["summary"] + " " + prediction["id"]
     
     def run_reschedule_event(self, query) -> Any:
-        """Run create event on query."""
+        """Run reschedule event on query."""
         from langchain import LLMChain, OpenAI, PromptTemplate
 
-        # Use a classification chain to classify the query
         date_prompt = PromptTemplate(
-            input_variables=["date", "query", "u_timezone"],
+            input_variables=["query"],
+            template=RESCHEDULE_EVENT_DESCRIPTION_PROMPT,
+        )
+        reschedule_event_chain = LLMChain(
+            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            prompt=date_prompt,
+            verbose=True,
+        )
+        # llm_chain.run(query=query).strip() ouputs a json string
+        output = reschedule_event_chain.run(
+            query=query
+        ).strip()
+        
+        # Temporary display event summary response from GPT
+        loaded = json.loads(output)
+        (
+            event_summary
+        ) = loaded.values()
+        pprint("printing vals from prompt")
+        pprint(loaded)
+        prediction = self.find_event_id_by_name(loaded["event_summary"])   
+
+        # now try to set proper parameteres to reschedule an event
+
+        date_prompt = PromptTemplate(
+            input_variables=["query", "date", "u_timezone", "event_summary", "event_start_time", "event_end_time"],
             template=RESCHEDULE_EVENT_PROMPT,
         )
         reschedule_event_chain = LLMChain(
@@ -367,28 +393,25 @@ class GoogleCalendarAPIWrapper(BaseModel):
             prompt=date_prompt,
             verbose=True,
         )
+
         date = datetime.datetime.utcnow().isoformat() + "Z"
         u_timezone = str(
             datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
         )
-        # llm_chain.run(query=query).strip() ouputs a json string
+
         output = reschedule_event_chain.run(
-            query=query, date=date, u_timezone=u_timezone
+            query=query, date=date, u_timezone=u_timezone, event_summary=loaded["event_summary"], 
+            event_start_time=prediction["start"]["dateTime"], event_end_time=prediction["end"]["dateTime"]
         ).strip()
-        
-        # Temporary display event summary response from GPT
-        
+
         loaded = json.loads(output)
-        (
-            event_summary,
-            event_start_time,
-            event_end_time,
-        ) = loaded.values()
-        pprint("printing vals from prompt")
-        pprint(loaded)
-        prediction = self.find_event_id_by_name(loaded["event_summary"])   
-        self.reschedule_event(prediction["id"], event_start_time, event_end_time)
-        return (prediction["id"], prediction["start"]["dateTime"], prediction["end"]["dateTime"])
+
+        upadated_event = self.reschedule_event(prediction["id"], 
+            loaded["event_start_time"], 
+            loaded["event_end_time"],
+            loaded["event_summary"])
+
+        return upadated_event
 
     def run_choice_events(self, openai_temperature: float = 0.7) -> str:
         from langchain import LLMChain, OpenAI, PromptTemplate
