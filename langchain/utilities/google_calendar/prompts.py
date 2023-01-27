@@ -6,12 +6,12 @@ CLASSIFICATION_PROMPT = """
 
 The following is an action to be taken in a calendar.
 Classify it as one of the following: \n\n
-1. create_event \n
-2. view_event \n
-3. view_events \n
-4. delete_event \n
-5. reschedule_event \n
-6. choice_event \n
+create_event \n
+view_event \n
+view_events \n
+delete_event \n
+reschedule_event \n
+choice_event \n
 
 Classification:
 """
@@ -23,7 +23,7 @@ Below is the list of calendar events.
 
 There is too many of them. I'd like to only attend one and cancel one. 
 Please select the event I should attend and provide a funny explanation 
-why and also select the event I should cancel and provide funny explanation.
+why and also select the event I should cancel and provide funny explanation. Reply in Polish.
 
 In the format:
 1. Attend event name - funny explanation why to attend

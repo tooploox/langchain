@@ -352,7 +352,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         from langchain import LLMChain, OpenAI, PromptTemplate
 
         events = self.view_events()
-        query = " \n".join([f"{idx+1}". event["summary"] for idx, event in enumerate(events)])
+        query = " \n".join([f"{idx+1}. {event['summary']}" for idx, event in enumerate(events)])
 
         choice_prompt = PromptTemplate(
             input_variables=["query"],
@@ -380,7 +380,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         elif classification == "delete_event":
             resp = self.run_delete_event(query)
         elif classification == "choice_event":
-            resp = self.run_choice_events(query)
+            resp = self.run_choice_events()
         else:
             return {"classification": "error", "response": f"{classification} is not implemented"}
 
