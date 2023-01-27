@@ -216,7 +216,11 @@ class GoogleCalendarAPIWrapper(BaseModel):
             template=CLASSIFICATION_PROMPT, input_variables=["query"]
         )
         llm_chain = LLMChain(
+<<<<<<< Updated upstream
             llm=OpenAI(temperature=0, model_name="text-davinci-003"),
+=======
+            llm=OpenAI(temperature=0),
+>>>>>>> Stashed changes
             prompt=prompt,
             verbose=True,
         )
