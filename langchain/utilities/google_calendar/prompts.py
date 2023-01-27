@@ -58,7 +58,7 @@ event_summary:\n
     "event_start_time": "2021-05-03T19:00:00-05:00",
     "event_end_time": "2021-05-03T20:00:00-05:00",
     "event_location": "",
-    "event_description": "",
+    "event_description": "This is a celebration of Joeys bithday.",
     "user_timezone": "America/New_York"
 }}
 
@@ -68,6 +68,8 @@ Based on this event description:\n{query}, output a json of the
 following parameters: \n
 Today's datetime on UTC time {date} and timezone of the user {u_timezone},
 take into account the timezone of the user and today's date.
+Generate a probable 3-sentence funny description of the event based on its summary in the same
+language as the summary.
 
 
 1. event_summary \n
@@ -78,4 +80,10 @@ take into account the timezone of the user and today's date.
 6. user_timezone \n
 
 event_summary:  \n
+"""
+
+CREATE_DESCRIPTION_PROMPT = """
+Create a funny description of an event, based on the given event summary, in the same language 
+as the create prompt:
+{query}
 """

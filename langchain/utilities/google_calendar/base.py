@@ -11,7 +11,7 @@ from pydantic import BaseModel, Extra, root_validator
 from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
     CREATE_EVENT_PROMPT,
-    DELETE_EVENT_PROMPT,
+    DELETE_EVENT_PROMPT, CREATE_DESCRIPTION_PROMPT,
 )
 
 
@@ -248,7 +248,19 @@ class GoogleCalendarAPIWrapper(BaseModel):
         
         # Temporary display event summary response from GPT
         print(output)
-        
+
+        # Use a classification chain to guess the description
+        description_prompt = PromptTemplate(
+            input_variables=["query"],
+            template=CREATE_DESCRIPTION_PROMPT,
+        )
+        create_description_chain = LLMChain(
+            llm=OpenAI(temperature=0.9),
+            prompt=description_prompt,
+            verbose=True,
+        )
+        funny_description = create_description_chain.run(query=query)
+
         loaded = json.loads(output)
         (
             event_summary,
@@ -265,7 +277,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_end_time=event_end_time,
             user_timezone=user_timezone,
             event_location=event_location,
-            event_description=event_description,
+            event_description=funny_description,
         )
         return event
 
