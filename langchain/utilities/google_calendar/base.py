@@ -321,7 +321,8 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_summary,
         ) = loaded.values()
         prediction = self.find_event_id_by_name(loaded["event_summary"])
-        self.delete_event(prediction[0])
+        if prediction[0] != "":
+            self.delete_event(prediction[0])
         return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + ' '.join(prediction)
         
     def run(self, query: str) -> Dict[str, Any]:
