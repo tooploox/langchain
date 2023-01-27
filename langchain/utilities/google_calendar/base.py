@@ -268,21 +268,30 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_description=event_description,
         )
         return event
-    
-    def lcs(self, X, Y):
-        m, n = len(X), len(Y)
-        prev, cur = [0]*(n+1), [0]*(n+1)
-        for i in range(1, m+1):
-            for j in range(1, n+1):
-                if X[i-1] == Y[j-1]:
-                    cur[j] = 1 + prev[j-1]
+
+    def remove_common_words(self, word):
+        newWord = word
+        common_words = ["with", "your", "that", "what", "have", "from"]
+        for i in common_words:
+            newWord = newWord.replace(i, '')
+        return newWord
+
+    def lcs(self, s, t):
+        s = self.remove_common_words(s)
+        t = self.remove_common_words(t)
+        m, n = len(t), len(s)
+        dp = [[0 for i in range(m + 1)] for j in range(2)]
+        res = 0
+        
+        for i in range(1,n + 1):
+            for j in range(1,m + 1):
+                if(s[i - 1] == t[j - 1]):
+                    dp[i % 2][j] = dp[(i - 1) % 2][j - 1] + 1
+                    if(dp[i % 2][j] > res):
+                        res = dp[i % 2][j]
                 else:
-                    if cur[j-1] > prev[j]:
-                        cur[j] = cur[j-1]
-                    else:
-                        cur[j] = prev[j]
-            cur, prev = prev, cur
-        return prev[n]
+                    dp[i % 2][j] = 0
+        return res
     
     def find_event_id_by_name(self, event_name):
         events = [ {"summary": i["summary"], "id": i["id"]} for i in self.view_events()]
