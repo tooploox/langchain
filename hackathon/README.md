@@ -3,7 +3,7 @@
 1. Put your Google Developer Account credentials.json in `/hackathon/credentials.json`
    - Needs to have permission to access Google Calendar in the desired domain
 2. Run `poetry install`
-3. Install additional packages using pip:
+3. ~~Install additional packages using pip:~~
 ```shell
 pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
