@@ -154,17 +154,16 @@ class GoogleCalendarAPIWrapper(BaseModel):
         except self.google_http_error as error:
             print(f"An error occurred: {error}")
 
-    # Not implemented yet
-    # def delete_event(self, event_id: str) -> Any:
-    #     """Delete an event in the user's calendar."""
-    #     try:
-    #         self.service.events().delete(
-    #             calendarId="primary", eventId=event_id
-    #         ).execute()
-    #         print(f"Event with ID {event_id} has been deleted.")
-    #         return f"Event with ID {event_id} has been deleted."
-    #     except self.google_http_error as error:
-    #         print(f"An error occurred: {error}")
+    #Not implemented yet
+    def delete_event(self, event_id: str) -> Any:
+        """Delete an event in the user's calendar."""
+        try:
+            self.service.events().delete(
+                calendarId="primary", eventId=event_id
+            ).execute()
+            print(f"Event with ID {event_id} has been deleted.")
+        except self.google_http_error as error:
+            print(f"An error occurred: {error}")
 
     @root_validator()
     def validate_environment(cls, values: Dict) -> Dict:
@@ -293,7 +292,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
                 most_possible_id = i["id"]
                 most_possible_name = i["summary"]
         if longest_lcs < 3:
-            return "nothing in your calendar fits the description of an event: " + event_name
+            return ("", "nothing in your calendar fits the given event name")
         return (most_possible_id, most_possible_name)
         
     def run_delete_event(self, query) -> Any:
@@ -318,6 +317,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_summary,
         ) = loaded.values()
         prediction = self.find_event_id_by_name(loaded["event_summary"])
+        self.delete_event(prediction[0])
         return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + ' '.join(prediction)
         
     def run(self, query: str) -> str:
