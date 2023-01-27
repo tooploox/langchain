@@ -15,6 +15,28 @@ Classify it as one of the following: \n\n
 Classification:
 """
 
+DELETE_EVENT_PROMPT = """
+
+Based on this event description:\n'Remove meeting with Joona',
+output a json of the following parameters: \n
+
+1. event_summary \n
+
+
+event_summary:\n
+{{
+    "event_summary": "meeting with Joona"
+}}
+
+
+Based on this event description:\n{query}, output a json of the
+following parameters: \n
+
+1. event_summary \n
+
+event_summary:  \n
+"""
+
 CREATE_EVENT_PROMPT = """
 Date format: YYYY-MM-DDThh:mm:ss+00:00
 Based on this event description:\n'Joey birthday tomorrow at 7 pm',

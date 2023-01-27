@@ -2,6 +2,7 @@
 
 import datetime
 import json
+from pprint import pprint
 import os
 from typing import Any, Dict, List
 
@@ -10,6 +11,7 @@ from pydantic import BaseModel, Extra, root_validator
 from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
     CREATE_EVENT_PROMPT,
+    DELETE_EVENT_PROMPT,
 )
 
 
@@ -153,16 +155,16 @@ class GoogleCalendarAPIWrapper(BaseModel):
             print(f"An error occurred: {error}")
 
     # Not implemented yet
-    def delete_event(self, event_id: str) -> Any:
-        """Delete an event in the user's calendar."""
-        try:
-            self.service.events().delete(
-                calendarId="primary", eventId=event_id
-            ).execute()
-            print(f"Event with ID {event_id} has been deleted.")
-            return f"Event with ID {event_id} has been deleted."
-        except self.google_http_error as error:
-            print(f"An error occurred: {error}")
+    # def delete_event(self, event_id: str) -> Any:
+    #     """Delete an event in the user's calendar."""
+    #     try:
+    #         self.service.events().delete(
+    #             calendarId="primary", eventId=event_id
+    #         ).execute()
+    #         print(f"Event with ID {event_id} has been deleted.")
+    #         return f"Event with ID {event_id} has been deleted."
+    #     except self.google_http_error as error:
+    #         print(f"An error occurred: {error}")
 
     @root_validator()
     def validate_environment(cls, values: Dict) -> Dict:
@@ -263,7 +265,61 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_description=event_description,
         )
         return "Event created successfully, details: event " + event.get("htmlLink")
+    
+    def lcs(self, X, Y):
+        m, n = len(X), len(Y)
+        prev, cur = [0]*(n+1), [0]*(n+1)
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if X[i-1] == Y[j-1]:
+                    cur[j] = 1 + prev[j-1]
+                else:
+                    if cur[j-1] > prev[j]:
+                        cur[j] = cur[j-1]
+                    else:
+                        cur[j] = prev[j]
+            cur, prev = prev, cur
+        return prev[n]
+    
+    def find_event_id_by_name(self, event_name):
+        events = [ {"summary": i["summary"], "id": i["id"]} for i in self.view_events()]
+        most_possible_id = ""
+        most_possible_name = ""
+        longest_lcs = 0
+        for i in events:
+            l = self.lcs(i["summary"], event_name)
+            if l > longest_lcs:
+                longest_lcs = l
+                most_possible_id = i["id"]
+                most_possible_name = i["summary"]
+        if longest_lcs < 3:
+            return "nothing in your calendar fits the description of an event: " + event_name
+        return (most_possible_id, most_possible_name)
+        
+    def run_delete_event(self, query) -> Any:
+        """Run create event on query."""
+        from langchain import LLMChain, OpenAI, PromptTemplate
 
+        # Use a classification chain to classify the query
+        date_prompt = PromptTemplate(
+            input_variables=["query"],
+            template=DELETE_EVENT_PROMPT,
+        )
+        create_event_chain = LLMChain(
+            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            prompt=date_prompt,
+            verbose=True,
+        )
+        output = create_event_chain.run(
+            query=query
+        ).strip()
+        loaded = json.loads(output)
+        (
+            event_summary,
+        ) = loaded.values()
+        prediction = self.find_event_id_by_name(loaded["event_summary"])
+        return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + ' '.join(prediction)
+        
     def run(self, query: str) -> str:
         """Ask a question to the notion database."""
         # Use a classification chain to classify the query
@@ -271,6 +327,13 @@ class GoogleCalendarAPIWrapper(BaseModel):
 
         if classification == "create_event":
             return self.run_create_event(query)
+        if classification == "view_events":
+            print("Wow, you try to view an event!!")
+            return self.view_events()
+        if classification == "delete_event":
+            return self.run_delete_event(query)
+
+            
 
         # TODO: reschedule_event, view_event, view_events, delete_event
 
