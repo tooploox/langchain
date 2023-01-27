@@ -1,16 +1,6 @@
 """Prompts for Google Calendar."""
 
 CLASSIFICATION_PROMPT = """
-Reschedule our meeting for 5 pm today. \n
-The following is an action to be taken in a calendar.
-Classify it as one of the following: \n\n
-1. create_event \n
-2. view_event \n
-3. view_events \n
-4. delete_event \n
-5. reschedule_event \n
-
-Classification: Reschedule an event
 
 {query}
 
