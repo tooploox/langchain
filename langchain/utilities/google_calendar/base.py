@@ -11,7 +11,9 @@ from pydantic import BaseModel, Extra, root_validator
 from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
     CREATE_EVENT_PROMPT,
-    DELETE_EVENT_PROMPT, CREATE_DESCRIPTION_PROMPT,
+    DELETE_EVENT_PROMPT, 
+    CREATE_DESCRIPTION_PROMPT,
+    CHOICE_EVENT_PROMPT,
 )
 
 
