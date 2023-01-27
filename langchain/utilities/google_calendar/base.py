@@ -245,6 +245,10 @@ class GoogleCalendarAPIWrapper(BaseModel):
         output = create_event_chain.run(
             query=query, date=date, u_timezone=u_timezone
         ).strip()
+        
+        # Temporary display event summary response from GPT
+        print(output)
+        
         loaded = json.loads(output)
         (
             event_summary,
