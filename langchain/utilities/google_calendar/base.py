@@ -238,7 +238,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             template=CREATE_EVENT_PROMPT,
         )
         create_event_chain = LLMChain(
-            llm=OpenAI(temperature=openai_temperature, model="text-davinci-003"),
+            llm=OpenAI(temperature=0, model="text-davinci-003"),
             prompt=date_prompt,
             verbose=True,
         )
@@ -260,7 +260,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             template=CREATE_DESCRIPTION_PROMPT,
         )
         create_description_chain = LLMChain(
-            llm=OpenAI(temperature=0.9),
+            llm=OpenAI(temperature=openai_temperature),
             prompt=description_prompt,
             verbose=True,
         )
