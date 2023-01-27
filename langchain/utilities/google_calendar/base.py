@@ -263,7 +263,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_location=event_location,
             event_description=event_description,
         )
-        return "Event created successfully, details: event " + event.get("htmlLink")
+        return event
     
     def lcs(self, X, Y):
         m, n = len(X), len(Y)
@@ -320,21 +320,19 @@ class GoogleCalendarAPIWrapper(BaseModel):
         self.delete_event(prediction[0])
         return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + ' '.join(prediction)
         
-    def run(self, query: str) -> str:
+    def run(self, query: str) -> Dict[str, Any]:
         """Ask a question to the notion database."""
         # Use a classification chain to classify the query
         classification = self.run_classification(query)
 
         if classification == "create_event":
-            return self.run_create_event(query)
-        if classification == "view_events":
-            print("Wow, you try to view an event!!")
-            return self.view_events()
-        if classification == "delete_event":
-            return self.run_delete_event(query)
+            resp = self.run_create_event(query)
+        elif classification == "view_events":
+            resp = self.view_events()
+        elif classification == "delete_event":
+            resp = self.run_delete_event(query)
+        else:
+            return {"classification": "error", "response": f"{classification} is not implemented"}
 
-            
-
-        # TODO: reschedule_event, view_event, view_events, delete_event
-
-        return "Currently only create event is supported"
+        # TODO: reschedule_event, view_event, delete_event
+        return {"classification": classification, "response": resp}
