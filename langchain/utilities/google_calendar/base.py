@@ -10,10 +10,10 @@ from pydantic import BaseModel, Extra, root_validator
 
 from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
-    RESCHEDULE_EVENT_PROMPT,
     DELETE_EVENT_PROMPT, 
     CREATE_DESCRIPTION_PROMPT,
     CHOICE_EVENT_PROMPT,
+    RESCHEDULE_EVENT_PROMPT,
 )
 
 
@@ -347,7 +347,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         ) = loaded.values()
         prediction = self.find_event_id_by_name(loaded["event_summary"])
         if prediction != None:
-            self.delete_event(prediction["summary"])
+            self.delete_event(prediction["id"])
         else:
             prediction = {"summary": "none", "id": "none"}
         return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + prediction["summary"] + " " + prediction["id"]
