@@ -11,8 +11,23 @@ Classify it as one of the following: \n\n
 3. view_events \n
 4. delete_event \n
 5. reschedule_event \n
+6. choice_event \n
 
 Classification:
+"""
+
+CHOICE_EVENT_PROMPT = """
+Below is the list of calendar events.
+
+{query}
+
+There is too many of them. I'd like to only attend one and cancel one. 
+Please select the event I should attend and provide a funny explanation 
+why and also select the event I should cancel and provide funny explanation.
+
+In the format:
+1. Attend event name - funny explanation why to attend
+2. Cancel event name - funny explanation why to cancel
 """
 
 DELETE_EVENT_PROMPT = """
