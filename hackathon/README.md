@@ -7,7 +7,12 @@
 ```shell
 pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
-4. Run the server:
+4. Add a `.env` file
+```shell
+cp hackathon/example.env hackathon/.env
+```
+5. Paste the OPENAI_API_KEY to `.env`
+6. Run the server:
 ```shell
 cd hackathon
 source entrypoint.sh                        
