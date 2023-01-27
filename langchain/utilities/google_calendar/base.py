@@ -10,9 +10,10 @@ from pydantic import BaseModel, Extra, root_validator
 
 from langchain.utilities.google_calendar.prompts import (
     CLASSIFICATION_PROMPT,
-    CREATE_EVENT_PROMPT,
-    DELETE_EVENT_PROMPT,
     RESCHEDULE_EVENT_PROMPT,
+    DELETE_EVENT_PROMPT, 
+    CREATE_DESCRIPTION_PROMPT,
+    CHOICE_EVENT_PROMPT,
 )
 
 
@@ -249,7 +250,19 @@ class GoogleCalendarAPIWrapper(BaseModel):
         
         # Temporary display event summary response from GPT
         print(output)
-        
+
+        # Use a classification chain to guess the description
+        description_prompt = PromptTemplate(
+            input_variables=["query"],
+            template=CREATE_DESCRIPTION_PROMPT,
+        )
+        create_description_chain = LLMChain(
+            llm=OpenAI(temperature=0.9),
+            prompt=description_prompt,
+            verbose=True,
+        )
+        funny_description = create_description_chain.run(query=query)
+
         loaded = json.loads(output)
         (
             event_summary,
@@ -266,7 +279,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
             event_end_time=event_end_time,
             user_timezone=user_timezone,
             event_location=event_location,
-            event_description=event_description,
+            event_description=funny_description,
         )
         return event
 
@@ -376,6 +389,26 @@ class GoogleCalendarAPIWrapper(BaseModel):
         self.reschedule_event(prediction["id"], event_start_time, event_end_time)
         return (prediction["id"], prediction["start"]["dateTime"], prediction["end"]["dateTime"])
 
+    def run_choice_events(self) -> str:
+        from langchain import LLMChain, OpenAI, PromptTemplate
+
+        events = self.view_events()
+        query = " \n".join([f"{idx+1}. {event['summary']}" for idx, event in enumerate(events)])
+
+        choice_prompt = PromptTemplate(
+            input_variables=["query"],
+            template=CHOICE_EVENT_PROMPT,
+        )
+        choice_events_chain = LLMChain(
+            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            prompt=choice_prompt,
+            verbose=True,
+        )
+        output = choice_events_chain.run(
+            query=query,
+        ).strip()
+        return output
+
     def run(self, query: str) -> Dict[str, Any]:
         """Ask a question to the notion database."""
         # Use a classification chain to classify the query
@@ -389,6 +422,8 @@ class GoogleCalendarAPIWrapper(BaseModel):
             resp = self.run_delete_event(query)
         elif classification == "reschedule_event":
             resp = self.run_reschedule_event(query)
+        elif classification == "choice_event":
+            resp = self.run_choice_events()
         else:
             return {"classification": "error", "response": f"{classification} is not implemented"}
 

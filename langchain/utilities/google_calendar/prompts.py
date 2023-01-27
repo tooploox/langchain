@@ -6,11 +6,12 @@ CLASSIFICATION_PROMPT = """
 
 The following is an action to be taken in a calendar.
 Classify it as one of the following: \n\n
-1. create_event \n
-2. view_event \n
-3. view_events \n
-4. delete_event \n
-5. reschedule_event \n
+create_event \n
+view_event \n
+view_events \n
+delete_event \n
+reschedule_event \n
+choice_event \n
 
 Classification:
 """
@@ -47,6 +48,20 @@ take into account the timezone of the user and today's date.
 3. event_end_time \n
 
 event_summary:  \n
+"""
+
+CHOICE_EVENT_PROMPT = """
+Below is the list of calendar events.
+
+{query}
+
+There is too many of them. I'd like to only attend one and cancel one. 
+Please select the event I should attend and provide a funny explanation 
+why and also select the event I should cancel and provide funny explanation. Reply in Polish.
+
+In the format:
+1. Attend event name - funny explanation why to attend
+2. Cancel event name - funny explanation why to cancel
 """
 
 DELETE_EVENT_PROMPT = """
@@ -92,7 +107,7 @@ event_summary:\n
     "event_start_time": "2021-05-03T19:00:00-05:00",
     "event_end_time": "2021-05-03T20:00:00-05:00",
     "event_location": "",
-    "event_description": "",
+    "event_description": "This is a celebration of Joeys bithday.",
     "user_timezone": "America/New_York"
 }}
 
@@ -102,6 +117,8 @@ Based on this event description:\n{query}, output a json of the
 following parameters: \n
 Today's datetime on UTC time {date} and timezone of the user {u_timezone},
 take into account the timezone of the user and today's date.
+Generate a probable 3-sentence funny description of the event based on its summary in the same
+language as the summary.
 
 
 1. event_summary \n
@@ -112,4 +129,10 @@ take into account the timezone of the user and today's date.
 6. user_timezone \n
 
 event_summary:  \n
+"""
+
+CREATE_DESCRIPTION_PROMPT = """
+Create a funny description of an event, based on the given event summary, in the same language 
+as the create prompt:
+{query}
 """
