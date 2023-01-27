@@ -134,3 +134,7 @@ dmypy.json
 
 # macOS display setting files
 .DS_Store
+
+docs/modules/utils/examples/credentials.json
+
+docs/modules/utils/examples/token.json
