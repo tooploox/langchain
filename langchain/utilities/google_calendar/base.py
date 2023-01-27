@@ -347,7 +347,27 @@ class GoogleCalendarAPIWrapper(BaseModel):
         if prediction[0] != "":
             self.delete_event(prediction[0])
         return "Welp fella, that's your event name: " + loaded["event_summary"] + "\n" "I also tried to find it's id in your calendar: " + ' '.join(prediction)
-        
+
+    def run_choice_events(self) -> str:
+        from langchain import LLMChain, OpenAI, PromptTemplate
+
+        events = self.view_events()
+        query = " \n".join([f"{idx+1}". event["summary"] for idx, event in enumerate(events)])
+
+        choice_prompt = PromptTemplate(
+            input_variables=["query"],
+            template=CHOICE_EVENT_PROMPT,
+        )
+        choice_events_chain = LLMChain(
+            llm=OpenAI(temperature=0, model="text-davinci-003"),
+            prompt=choice_prompt,
+            verbose=True,
+        )
+        output = choice_events_chain.run(
+            query=query,
+        ).strip()
+        return output
+
     def run(self, query: str) -> Dict[str, Any]:
         """Ask a question to the notion database."""
         # Use a classification chain to classify the query
@@ -359,6 +379,8 @@ class GoogleCalendarAPIWrapper(BaseModel):
             resp = self.view_events()
         elif classification == "delete_event":
             resp = self.run_delete_event(query)
+        elif classification == "choice_event":
+            resp = self.run_choice_events(query)
         else:
             return {"classification": "error", "response": f"{classification} is not implemented"}
 
