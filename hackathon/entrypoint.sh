@@ -1,0 +1,1 @@
+uvicorn hackathon.app:app --reload

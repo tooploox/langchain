@@ -30,6 +30,9 @@ pinecone-client = {version = "^2", optional = true}
 weaviate-client = {version = "^3", optional = true}
 google-api-python-client = {version = "2.70.0", optional = true}
 wolframalpha = {version = "5.0.0", optional = true}
+openai = "^0.26.4"
+fastapi = "^0.89.1"
+uvicorn = "^0.20.0"
 
 [tool.poetry.group.docs.dependencies]
 autodoc_pydantic = "^1.8.0"
