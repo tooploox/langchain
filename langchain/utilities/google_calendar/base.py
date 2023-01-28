@@ -144,23 +144,21 @@ class GoogleCalendarAPIWrapper(BaseModel):
 
     # Not implemented yet
     def reschedule_event(
-        self, event_id: str, new_start_time: str, new_end_time: str, new_event_description: str, new_event_summary: str
+        self, event_id: str, new_start_time: str, new_end_time: str
     ) -> Any:
         """Reschedule an event in the user's calendar."""
         try:
             event = (
                 self.service.events()
-                    .get(calendarId="primary", eventId=event_id)
-                    .execute()
+                .get(calendarId="primary", eventId=event_id)
+                .execute()
             )
             event["start"]["dateTime"] = new_start_time
             event["end"]["dateTime"] = new_end_time
-            event["description"] = new_event_description
-            event["summary"] = new_event_summary
             updated_event = (
                 self.service.events()
-                    .update(calendarId="primary", eventId=event_id, body=event)
-                    .execute()
+                .update(calendarId="primary", eventId=event_id, body=event)
+                .execute()
             )
             print(f'Event rescheduled: {updated_event.get("htmlLink")}')
             return updated_event
@@ -398,14 +396,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         # now try to set proper parameteres to reschedule an event
 
         date_prompt = PromptTemplate(
-            input_variables=["query", 
-                "date", 
-                "u_timezone", 
-                "event_description", 
-                "event_summary", 
-                "event_start_time", 
-                "event_end_time",
-                "event_duration"],
+            input_variables=["query", "event_duration", "date", "u_timezone"],
             template=RESCHEDULE_EVENT_PROMPT,
         )
         reschedule_event_chain = LLMChain(
@@ -423,23 +414,18 @@ class GoogleCalendarAPIWrapper(BaseModel):
         pprint(loaded)
 
         output = reschedule_event_chain.run(
-            query=query, 
-            date=date, 
-            u_timezone=u_timezone, 
-            event_description=prediction["description"],
-            event_summary=loaded["event_summary"], 
-            event_start_time=prediction["start"]["dateTime"], 
-            event_end_time=prediction["end"]["dateTime"], 
-            event_duration=3600
+            query=query,
+            event_duration=predDurationSec,
+            date = date,
+            u_timezone = u_timezone
         ).strip()
-
+        print("akjbeaibbabgbagbajbaakajbaajlbajladljbladgaljbdadlbalbaglbgajlnala")
+        pprint(output)
         loaded = json.loads(output)
 
         upadated_event = self.reschedule_event(prediction["id"], 
             loaded["event_start_time"], 
-            loaded["event_end_time"],
-            loaded["event_description"],
-            loaded["event_summary"])
+            loaded["event_end_time"])
 
         return upadated_event
 
