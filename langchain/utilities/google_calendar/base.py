@@ -1,6 +1,7 @@
 """Chain that calls Google Calendar."""
 
 import datetime
+
 import json
 from pprint import pprint
 import os
@@ -389,7 +390,10 @@ class GoogleCalendarAPIWrapper(BaseModel):
         pprint("printing vals from prompt")
         pprint(loaded)
         prediction = self.find_event_id_by_name(loaded["event_summary"])
-
+        predStart, predEnd = prediction["start"]["dateTime"], prediction["end"]["dateTime"]
+        predStart, predEnd = datetime.datetime.fromisoformat(predStart), datetime.datetime.fromisoformat(predEnd)
+        predDurationSec = (predEnd - predStart).total_seconds()
+        pprint(predDurationSec)
         # now try to set proper parameteres to reschedule an event
 
         date_prompt = PromptTemplate(
