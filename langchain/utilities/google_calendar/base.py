@@ -496,7 +496,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         elif classification == "choice_event":
             resp = self.run_choice_events(openai_temperature=temperature)
         else:
-            yield("I have no idea what you are talking about...")
+            resp = "I have no idea what you are talking about..."
 
         # TODO: reschedule_event, view_event, delete_event
         yield str(resp)
