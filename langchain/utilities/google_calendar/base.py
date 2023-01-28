@@ -85,13 +85,13 @@ class GoogleCalendarAPIWrapper(BaseModel):
             created_event = (
                 self.service.events().insert(calendarId="primary", body=event).execute()
             )
-            return created_event
+            return f"Created an event in your calendar.\n\nTitle: {event['summary']}\nStart: {event['start']}\nEnd: {event['end']}\nDescription: {event['description']}"
 
         except self.google_http_error as error:
             return f"An error occurred: {error}"
 
     # Not implemented yet
-    def view_events(self) -> Any:
+    def view_events(self) -> List:
         """View all events in the user's calendar."""
         try:
             import datetime
@@ -110,14 +110,20 @@ class GoogleCalendarAPIWrapper(BaseModel):
             )
             events = events_result.get("items", [])
             if not events:
-                print("No upcoming events found.")
-                return
-            # for event in events:
-            #     start = event['start'].get('dateTime', event['start'].get('date'))
-            #     print(start, event['summary'])
+                return []
             return events
         except self.google_http_error as error:
             print(f"An error occurred: {error}")
+
+    def get_human_readable_events(self) -> str:
+        events = self.view_events()
+        if isinstance(events, list):
+            if len(list) > 0:
+                "\n\n".join([f"{event['summary']}\n{event['start']} - {event['end']}\n{event['description']}" for event in events])
+            else:
+                return "You've got no events in your calendar"
+        else:
+            return "An error occured when fetching your calendar events."
 
     # Not implemented yet
     def view_event(self, event_id: str) -> Any:
@@ -445,7 +451,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         if classification == "create_event":
             resp = self.run_create_event(query)
         elif classification == "view_events":
-            resp = self.view_events()
+            resp = self.get_human_readable_events()
         elif classification == "delete_event":
             resp = self.run_delete_event(query)
         elif classification == "reschedule_event":
@@ -466,7 +472,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         if classification == "create_event":
             resp = self.run_create_event(query, openai_temperature=temperature)
         elif classification == "view_events":
-            resp = self.view_events()
+            resp = self.get_human_readable_events()
         elif classification == "delete_event":
             resp = self.run_delete_event(query)
         elif classification == "reschedule_event":
