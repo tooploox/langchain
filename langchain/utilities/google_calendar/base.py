@@ -119,7 +119,7 @@ class GoogleCalendarAPIWrapper(BaseModel):
         events = self.view_events()
         if isinstance(events, list):
             if len(events) > 0:
-                return "\n\n".join([f"{event['summary']}\n{event['start']['dateTime']} - {event['end']['dateTime']}\n{event.get('description', '')}" for event in events])
+                return "\n\n".join([f"{event['summary']}\n{event['start'].get('dateTime')} - {event['end'].get('dateTime')}\n{event.get('description', '')}" for event in events])
             else:
                 return "You've got no events in your calendar"
         else:
